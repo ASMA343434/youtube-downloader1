@@ -1,71 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Video Upload Site</title>
+    <title>Simple Video Upload</title>
     <style>
-        .video-container {
-            margin: 20px 0;
-        }
-        video {
-            max-width: 100%;
-            max-height: 500px;
-        }
+        .error { color: red; }
+        .success { color: green; }
+        video { max-width: 100%; }
     </style>
 </head>
 <body>
-    <h1>Video Upload Site</h1>
+    <h1>Video Upload</h1>
+    <div id="status"></div>
     
     <form id="uploadForm">
         <input type="file" name="video" accept="video/*" required>
-        <button type="submit">Upload Video</button>
+        <button type="submit">Upload</button>
     </form>
 
-    <div id="videoList"></div>
+    <div id="videos"></div>
 
     <script>
-        async function loadVideos() {
-            try {
-                const response = await fetch('/videos');
-                const videos = await response.json();
-                const videoList = document.getElementById('videoList');
-                videoList.innerHTML = '';
-                
-                videos.forEach(video => {
-                    const container = document.createElement('div');
-                    container.className = 'video-container';
-                    
-                    const videoElement = document.createElement('video');
-                    videoElement.src = `/video/${video.id}`;
-                    videoElement.controls = true;
-                    
-                    container.appendChild(videoElement);
-                    videoList.appendChild(container);
-                });
-            } catch (error) {
-                console.error('Failed to load videos:', error);
-            }
-        }
+        const status = document.getElementById('status');
+        const showMessage = (msg, isError = false) => {
+            status.className = isError ? 'error' : 'success';
+            status.textContent = msg;
+        };
 
-        document.getElementById('uploadForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            
+        async function uploadVideo(formData) {
             try {
-                const response = await fetch('/upload', {
+                const response = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`Upload failed: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error('Upload failed');
                 
-                await loadVideos();
-                e.target.reset();
+                showMessage('Upload successful!');
+                loadVideos();
             } catch (err) {
-                console.error('Upload failed:', err);
-                alert('Upload failed: ' + err.message);
+                showMessage(err.message, true);
             }
+        }
+
+        async function loadVideos() {
+            try {
+                const response = await fetch('/api/videos');
+                const videos = await response.json();
+                document.getElementById('videos').innerHTML = videos
+                    .map(v => `<div><video src="data:video/mp4;base64,${v.data}" controls></video></div>`)
+                    .join('');
+            } catch (err) {
+                showMessage('Failed to load videos', true);
+            }
+        }
+
+        document.getElementById('uploadForm').onsubmit = (e) => {
+            e.preventDefault();
+            uploadVideo(new FormData(e.target));
         };
 
         loadVideos();
