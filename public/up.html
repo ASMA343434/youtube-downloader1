@@ -123,21 +123,25 @@
             formData.append('video', fileInput.files[0]);
 
             try {
-                const response = await fetch('/upload', {
+                const response = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
                 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'حدث خطأ أثناء رفع الفيديو');
+                    throw new Error(await response.text());
                 }
 
                 const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
                 videos.push(data);
                 updateVideoList();
                 fileInput.value = '';
             } catch (error) {
+                console.error('Upload error:', error);
                 alert('خطأ في رفع الفيديو: ' + error.message);
             }
         }
@@ -146,13 +150,17 @@
             const url = document.getElementById('videoUrl').value;
             if(url) {
                 try {
-                    const response = await fetch(`/video-info?url=${encodeURIComponent(url)}`);
-                    const data = await response.json();
+                    const response = await fetch(`/api/video-info?url=${encodeURIComponent(url)}`);
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
                     
+                    const data = await response.json();
                     videos.push(data);
                     updateVideoList();
                     document.getElementById('videoUrl').value = '';
                 } catch (error) {
+                    console.error('YouTube error:', error);
                     alert('خطأ في تحميل الفيديو: ' + error.message);
                 }
             }

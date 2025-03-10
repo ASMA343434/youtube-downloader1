@@ -42,7 +42,8 @@ app.get('/up.html', (req, res) => {
     res.sendFile(path.join(config.publicDir, 'up.html'));
 });
 
-app.get('/video-info', async (req, res) => {
+// Update API routes
+app.get('/api/video-info', async (req, res) => {
     try {
         const url = req.query.url;
         const info = await ytdl.getInfo(url);
@@ -57,13 +58,15 @@ app.get('/video-info', async (req, res) => {
             thumbnail: info.videoDetails.thumbnails[0].url
         });
     } catch (error) {
+        console.error('Video info error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-app.post('/upload', (req, res) => {
+app.post('/api/upload', (req, res) => {
     upload(req, res, function(err) {
         if (err) {
+            console.error('Upload error:', err);
             return res.status(400).json({ 
                 error: err.message 
             });
