@@ -12,12 +12,27 @@
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "index.js"
+    },
+    {
+      "src": "/up.html",
+      "dest": "index.js"
+    },
+    {
       "src": "/video-info",
+      "dest": "index.js"
+    },
+    {
+      "src": "/upload",
       "dest": "index.js"
     },
     {
       "src": "/(.*)",
       "dest": "public/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

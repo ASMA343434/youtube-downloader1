@@ -127,6 +127,12 @@
                     method: 'POST',
                     body: formData
                 });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'حدث خطأ أثناء رفع الفيديو');
+                }
+
                 const data = await response.json();
                 videos.push(data);
                 updateVideoList();

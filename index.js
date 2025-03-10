@@ -4,23 +4,44 @@ const ytdl = require('ytdl-core');
 const app = express();
 const path = require('path');
 const multer = require('multer');
+const fs = require('fs');
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
-    destination: path.join(__dirname, 'public', 'uploads'),
+    destination: uploadsDir,
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        // Add timestamp to prevent filename conflicts
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        cb(null, uniqueName);
     }
 });
-const upload = multer({ storage: storage });
+
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 100 * 1024 * 1024 // 100MB limit
+    }
+}).single('video');
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
+// Serve index.html at root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Serve up.html
+app.get('/up.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'up.html'));
 });
 
 app.get('/video-info', async (req, res) => {
@@ -42,19 +63,26 @@ app.get('/video-info', async (req, res) => {
     }
 });
 
-app.post('/upload', upload.single('video'), (req, res) => {
-    try {
-        if (!req.file) {
-            throw new Error('No file uploaded');
+app.post('/upload', (req, res) => {
+    upload(req, res, function(err) {
+        if (err) {
+            return res.status(400).json({ 
+                error: err.message 
+            });
         }
+        
+        if (!req.file) {
+            return res.status(400).json({ 
+                error: 'No file uploaded' 
+            });
+        }
+
         res.json({
             title: req.file.originalname,
             url: `/uploads/${req.file.filename}`,
             type: 'local'
         });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    });
 });
 
 const PORT = process.env.PORT || 3000;
