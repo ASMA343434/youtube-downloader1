@@ -1,116 +1,44 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="style.css">
-    <title>منصة التعليم</title>
+    <title>YouTube Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-        <!-- header section Design -->
-        <header>
-            <nav>
-                <a href="#"><i class="fa-solid fa-book"></i> <span>المنهج</span></a>
-                <a href="#"><i class="fa-solid fa-graduation-cap"></i><span>الكورسات</span></a>
-                <a href="#"><i class="fa-solid fa-money-check-alt"></i> <span>الاشتركات</span></a>
-                <a href="#"><i class="fa-solid fa-user-cog"></i> <span>أدارة الحساب</span></a>
-                <a href="#"><i class="fa-solid fa-phone"></i> <span>أتصل بنا</span></a>
-            </nav>
-        </header>
-
-    <div class="main-content">
-        <div class="search-section">
-            <select id="gradeSelect" class="grade-select">
-                <optgroup label="المرحلة الابتدائية">
-                    <option value="grade6">الصف السادس</option>
-                </optgroup>
-                <optgroup label="المرحلة الإعدادية">
-                    <option value="grade7">الصف الأول</option>
-                    <option value="grade8">الصف الثاني</option>
-                    <option value="grade9">الصف الثالث</option>
-                </optgroup>
-                <optgroup label="المرحلة الثانوية">
-                    <option value="grade10">الصف الأول</option>
-                    <option value="grade11">الصف الثاني</option>
-                    <option value="grade12">الصف الثالث</option>
-                </optgroup>
-            </select>
-            <input type="text" id="searchInput" placeholder="ابحث عن درس...">
-        </div>
-
-        <button id="addVideoBtn" class="add-video-btn">إضافة درس جديد</button>
-
-        <div id="videoList" class="video-list">
-            <!-- Videos will be added here dynamically -->
-        </div>
-
-        <div id="uploadPopup" class="popup">
-            <div class="popup-content">
-                <span class="close">&times;</span>
-                <h2>إضافة درس جديد</h2>
-                <form id="uploadForm">
-                    <div class="form-group">
-                        <label>رابط الفيديو</label>
-                        <input type="text" name="youtubeUrl" placeholder="رابط فيديو اليوتيوب" required>
-                        <span class="error-message">الرجاء إدخال رابط يوتيوب صحيح</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>عنوان الدرس</label>
-                        <input type="text" name="title" placeholder="عنوان الدرس" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>المرحلة الدراسية</label>
-                        <select name="grade" required>
-                            <optgroup label="المرحلة الابتدائية">
-                                <option value="grade6">الصف السادس</option>
-                            </optgroup>
-                            <optgroup label="المرحلة الإعدادية">
-                                <option value="grade7">الصف الأول</option>
-                                <option value="grade8">الصف الثاني</option>
-                                <option value="grade9">الصف الثالث</option>
-                            </optgroup>
-                            <optgroup label="المرحلة الثانوية">
-                                <option value="grade10">الصف الأول</option>
-                                <option value="grade11">الصف الثاني</option>
-                                <option value="grade12">الصف الثالث</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>المادة</label>
-                        <select name="subject" required>
-                            <option value="">اختر المادة</option>
-                            <option value="math">رياضيات</option>
-                            <option value="science">علوم</option>
-                            <option value="arabic">لغة عربية</option>
-                            <option value="english">لغة إنجليزية</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>وصف الدرس</label>
-                        <textarea name="description" placeholder="اكتب وصفاً مختصراً للدرس" required></textarea>
-                    </div>
-
-                    <button type="submit">رفع الدرس</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="subscription">
-            <a href="https://wa.me/+201126130559" class="whatsapp-btn">
-                <i class="fab fa-whatsapp"></i>
-                اشترك الآن عبر واتساب
-            </a>
-        </div>
+    <div class="container">
+        <h1>YouTube Video Downloader</h1>
+        <input type="text" id="videoUrl" placeholder="Enter YouTube URL">
+        <button onclick="downloadVideo()">Download</button>
     </div>
-
-    <script src="main.js"></script>
+    <script>
+        function downloadVideo() {
+            const url = document.getElementById('videoUrl').value;
+            if(url) {
+                window.location.href = `/download?url=${encodeURIComponent(url)}`;
+            }
+        }
+    </script>
 </body>
 </html>
