@@ -5,6 +5,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const config = require('./src/config');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const { uploadToCloudinary, getOptimizedUrl } = require('./src/config/cloudinary');
 
 const app = express(); // Add this line to initialize Express app
 
@@ -13,19 +16,19 @@ if (!fs.existsSync(config.uploadsDir)) {
     fs.mkdirSync(config.uploadsDir, { recursive: true });
 }
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: config.uploadsDir,
-    filename: (req, file, cb) => {
-        const uniqueName = `${Date.now()}-${file.originalname}`;
-        cb(null, uniqueName);
+// Configure Cloudinary
+cloudinary.config(config.cloudinary);
+
+// Configure storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'videos',
+        resource_type: 'video'
     }
 });
 
-const upload = multer({ 
-    storage: storage,
-    limits: config.uploadLimits
-}).single('video');
+const upload = multer({ storage: storage }).single('video');
 
 // Middleware
 app.use(cors(config.cors));
@@ -101,19 +104,26 @@ app.post('/upload', (req, res) => {
     });
 });
 
-app.post('/api/upload', (req, res) => {
-    upload(req, res, function(err) {
+app.post('/api/upload', async (req, res) => {
+    upload(req, res, async function(err) {
         if (err) {
             return res.status(400).json({ error: err.message });
         }
+        
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-        res.json({
-            title: req.file.originalname,
-            url: `/uploads/${req.file.filename}`,
-            type: 'local'
-        });
+
+        try {
+            const result = await uploadToCloudinary(req.file.path);
+            res.json({
+                title: req.file.originalname,
+                url: getOptimizedUrl(result.public_id),
+                type: 'cloudinary'
+            });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     });
 });
 
