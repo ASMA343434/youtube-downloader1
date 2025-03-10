@@ -12,13 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/api/upload",
-      "methods": ["POST"],
-      "dest": "index.js"
-    },
-    {
-      "src": "/api/video-info",
-      "methods": ["GET"],
+      "src": "/api/(.*)",
       "dest": "index.js"
     },
     {
@@ -26,12 +20,11 @@
       "dest": "public/index.html"
     },
     {
-      "src": "/up.html",
+      "src": "/up",
       "dest": "public/up.html"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "public/uploads/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
