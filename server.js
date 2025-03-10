@@ -6,10 +6,20 @@ const bodyParser = require('body-parser');
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname)));
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// تأكد من أن الملفات الساكنة يمكن الوصول إليها
+app.get('/style.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'style.css'));
+});
+
+app.get('/main.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'main.js'));
 });
 
 // Store videos (in real application, use a database)
