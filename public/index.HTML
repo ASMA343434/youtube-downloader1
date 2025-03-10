@@ -23,44 +23,51 @@
     <div id="videoList"></div>
 
     <script>
-        // تحميل قائمة الفيديوهات
         async function loadVideos() {
-            const response = await fetch('/videos');
-            const videos = await response.json();
-            const videoList = document.getElementById('videoList');
-            videoList.innerHTML = '';
-            
-            videos.forEach(video => {
-                const container = document.createElement('div');
-                container.className = 'video-container';
+            try {
+                const response = await fetch('/videos');
+                const videos = await response.json();
+                const videoList = document.getElementById('videoList');
+                videoList.innerHTML = '';
                 
-                const videoElement = document.createElement('video');
-                videoElement.src = `/uploads/${video}`;
-                videoElement.controls = true;
-                
-                container.appendChild(videoElement);
-                videoList.appendChild(container);
-            });
+                videos.forEach(video => {
+                    const container = document.createElement('div');
+                    container.className = 'video-container';
+                    
+                    const videoElement = document.createElement('video');
+                    videoElement.src = `/video/${video.id}`;
+                    videoElement.controls = true;
+                    
+                    container.appendChild(videoElement);
+                    videoList.appendChild(container);
+                });
+            } catch (error) {
+                console.error('Failed to load videos:', error);
+            }
         }
 
-        // معالجة نموذج الرفع
         document.getElementById('uploadForm').onsubmit = async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             
             try {
-                await fetch('/upload', {
+                const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
-                loadVideos();
+                
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.statusText}`);
+                }
+                
+                await loadVideos();
                 e.target.reset();
             } catch (err) {
                 console.error('Upload failed:', err);
+                alert('Upload failed: ' + err.message);
             }
         };
 
-        // تحميل الفيديوهات عند بدء التطبيق
         loadVideos();
     </script>
 </body>
