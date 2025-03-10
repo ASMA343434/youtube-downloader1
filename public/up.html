@@ -150,12 +150,17 @@
         async function addYouTubeVideo() {
             const url = document.getElementById('videoUrl').value;
             if(!url) return;
-
+            
             try {
+                const urlObj = new URL(url);
+                if (!urlObj.hostname.includes('youtube.com') && !urlObj.hostname.includes('youtu.be')) {
+                    throw new Error('الرجاء إدخال رابط يوتيوب صحيح');
+                }
+
                 const response = await fetch(`/api/video-info?url=${encodeURIComponent(url)}`);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Invalid response from server');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'حدث خطأ في تحميل الفيديو');
                 }
 
                 const data = await response.json();
@@ -163,12 +168,16 @@
                     throw new Error(data.error);
                 }
 
-                videos.push(data);
+                videos.push({
+                    ...data,
+                    url: data.url,
+                    type: 'youtube'
+                });
                 updateVideoList();
                 document.getElementById('videoUrl').value = '';
             } catch (error) {
                 console.error('Video info error:', error);
-                alert('خطأ في تحميل الفيديو: ' + error.message);
+                alert(error.message);
             }
         }
 
@@ -192,9 +201,17 @@
             const title = document.getElementById('modalVideoTitle');
             
             title.textContent = video.title;
-            player.src = video.url;
+            
+            // Handle different video types
+            if (video.type === 'youtube') {
+                const videoUrl = new URL(video.url);
+                player.src = videoUrl.toString();
+            } else {
+                player.src = video.url;
+            }
+            
             modal.style.display = 'block';
-            player.play();
+            player.play().catch(err => console.error('Playback error:', err));
         }
 
         function closeModal() {

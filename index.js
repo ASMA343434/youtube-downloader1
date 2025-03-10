@@ -68,17 +68,29 @@ app.get('/api/video-info', async (req, res) => {
     try {
         const url = req.query.url;
         const info = await ytdl.getInfo(url);
-        const formats = info.formats.filter(format => format.hasVideo && format.hasAudio);
-        const format = formats[0];
+        const formats = ytdl.filterFormats(info.formats, 'videoandaudio');
         
+        // Get the best quality format
+        const format = formats.reduce((prev, current) => {
+            return (prev.qualityLabel > current.qualityLabel) ? prev : current;
+        });
+        
+        if (!format) {
+            throw new Error('No suitable video format found');
+        }
+
         res.json({
             title: info.videoDetails.title,
             url: format.url,
             thumbnail: info.videoDetails.thumbnails[0].url,
-            type: 'external'
+            type: 'external',
+            quality: format.qualityLabel
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('YouTube error:', error);
+        res.status(500).json({ 
+            error: 'حدث خطأ في تحميل الفيديو. يرجى التأكد من صحة الرابط والمحاولة مرة أخرى.' 
+        });
     }
 });
 
