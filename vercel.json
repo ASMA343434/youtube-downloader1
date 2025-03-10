@@ -2,51 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "index.js",
+      "src": "app.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/api/upload",
-      "methods": ["POST"],
-      "dest": "index.js"
-    },
-    {
-      "src": "/api/video-info",
-      "methods": ["GET"],
-      "dest": "index.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "index.js"
-    },
-    {
-      "src": "/",
-      "dest": "public/index.html"
-    },
-    {
-      "src": "/up",
-      "dest": "public/up.html"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "public/$1"
+      "dest": "app.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "PUBLIC_DIR": "/public",
-    "UPLOADS_DIR": "/public/uploads",
-    "CLOUDINARY_CLOUD_NAME": "de6swm7bg",
-    "CLOUDINARY_API_KEY": "514845977585693",
-    "CLOUDINARY_API_SECRET": "your_api_secret_here"
-  }
+  ]
 }

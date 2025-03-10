@@ -1,333 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />    
-    <!--box icons-->
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css">
-    <title>Document</title>
+    <title>Video Upload Site</title>
+    <style>
+        .video-container {
+            margin: 20px 0;
+        }
+        video {
+            max-width: 100%;
+            max-height: 500px;
+        }
+    </style>
 </head>
 <body>
-
-    <!-- Loading screen -->
-    <div class="loading-screen">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Add control panel after loading screen -->
-    <div class="control-panel">
-        <button class="control-toggle">
-            <i class="fas fa-sliders-h"></i>
-        </button>
-        <div class="control-content">
-            <div class="control-section">
-                <h3>حجم الخط</h3>
-                <div class="font-controls">
-                    <button class="font-decrease">-</button>
-                    <span class="font-size-value">16</span>
-                    <button class="font-increase">+</button>
-                </div>
-            </div>
-            <div class="control-section">
-                <h3>لون الموقع</h3>
-                <div class="color-picker">
-                    <input type="color" id="primary-color" value="#ffb400">
-                </div>
-            </div>
-            <div class="control-section">
-                <h3>تأثيرات الحركة</h3>
-                <div class="animation-toggle">
-                    <input type="checkbox" id="animation-switch" checked>
-                    <label for="animation-switch">تفعيل</label>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mode">
-        <button>
-            <i class="fa-solid fa-sun"></i>
-        </button>
-    </div>
+    <h1>Video Upload Site</h1>
     
-    <div class="menu-toggle">
-        <i class="fas fa-bars"></i>
-    </div>
+    <form id="uploadForm">
+        <input type="file" name="video" accept="video/*" required>
+        <button type="submit">Upload Video</button>
+    </form>
 
-    <!-- header section Design -->
-    <header>
-        <nav>
-            <a href="#home"><i class="fa-solid fa-house"></i><span>الصفحة الرئسية</span></a>
-            <a href="#about"><i class="fa-solid fa-user"></i><span>من نحن</span></a>
-            <a href="#services"><i class="fa-solid fa-briefcase"></i><span>خدماتنا</span></a>
-            <a href="#projects"><i class="fa-solid fa-graduation-cap"></i><span>طلابنا</span></a>
-            <a href="#contact"><i class="fa-solid fa-phone"></i><span>اتصل بنا</span></a>
-        </nav>
-    </header>
+    <div id="videoList"></div>
 
-    <!--home section Design-->
-    <section class="home-section" id="home">
-        <div class="home">
-            <div class="content">
-                <div class="title">
-                    <h1>مرحبا بك في سلة الدكتور</h1>
-                    <span class="typed-text">معلم لغة عربية</span>
-                </div>
-                <p>أنا مدرس لغة عربية ذو خبرة تزيد عن 10 سنوات في تعليم اللغة العربية. أهتم بتطوير مهارات الطلاب وتحسين مستواهم الدراسي من خلال أساليب تعليمية حديثة ومبتكرة.</p>
-                
-                <div class="cta-buttons">
-                    <a href="up.html" class="primary-btn">
-                        <span>تسجيل الدخول</span>
-                        <i class="bx bx-right-arrow-alt"></i>
-                    </a>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fa-brands fa-facebook"></i></a>
-                        <a href="#" class="social-link"><i class="fa-brands fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fa-brands fa-instagram"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="image">
-                <img src="https://previews.dropbox.com/p/thumb/ACkOXFGL81vgcpjFP0VUxG9sFzisIDMsPch2O2GOvaMwnMMgACB5O-GNEGLqg6h_05F1y1eJEsJFWijBVlBsUl3tyXefR5RYSawC0P9t5XFM2Ru7c6OkbHc1OiLBzvTelpfTx9P7Uih7eDgmjmW6MpLsEEz7bDAVcQd_hDfteDL0Luorb5rnOqbpNv_s9S2SECo0sMw_qEWu7SiCduCVxG8_9shr2mfpvM_p8Cf3SXixY0cqeiCG2mVjU6fFuUfF18FrvHhEbpzJiSCKl-_WjtUKI4kGzNk5iQe-mqLidT6lffrW5YYV2bZIyzxiaGT02h0/p.png" alt="صورة المعلم">
-                <div class="shape"></div>
-            </div>
-        </div>
-    </section>
-
-    <!--about section Design-->
-    <section class="about-section" id="about">
-        <div class="about-content">
-            <h2 class="section-title reveal-title">من نحن</h2>
+    <script>
+        // تحميل قائمة الفيديوهات
+        async function loadVideos() {
+            const response = await fetch('/videos');
+            const videos = await response.json();
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = '';
             
-            <div class="about-grid">
-                <div class="about-image reveal-left">
-                    <img src="https://previews.dropbox.com/p/thumb/ACkOXFGL81vgcpjFP0VUxG9sFzisIDMsPch2O2GOvaMwnMMgACB5O-GNEGLqg6h_05F1y1eJEsJFWijBVlBsUl3tyXefR5RYSawC0P9t5XFM2Ru7c6OkbHc1OiLBzvTelpfTx9P7Uih7eDgmjmW6MpLsEEz7bDAVcQd_hDfteDL0Luorb5rnOqbpNv_s9S2SECo0sMw_qEWu7SiCduCVxG8_9shr2mfpvM_p8Cf3SXixY0cqeiCG2mVjU6fFuUfF18FrvHhEbpzJiSCKl-_WjtUKI4kGzNk5iQe-mqLidT6lffrW5YYV2bZIyzxiaGT02h0/p.png" alt="صورة المعلم">
-                    <div class="experience-badge">10+ سنوات خبرة</div>
-                </div>
+            videos.forEach(video => {
+                const container = document.createElement('div');
+                container.className = 'video-container';
                 
-                <div class="about-details reveal-right">
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <div class="info-icon"><i class="fas fa-user"></i></div>
-                            <div class="info-content">
-                                <h3>الاسم الكامل</h3>
-                                <p>محمد عبدالله</p>
-                            </div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-icon"><i class="fas fa-graduation-cap"></i></div>
-                            <div class="info-content">
-                                <h3>المؤهل العلمي</h3>
-                                <p>بكالوريوس في اللغة العربية</p>
-                            </div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-icon"><i class="fas fa-location-dot"></i></div>
-                            <div class="info-content">
-                                <h3>الموقع</h3>
-                                <p>حلوان، القاهرة</p>
-                            </div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-icon"><i class="fas fa-phone"></i></div>
-                            <div class="info-content">
-                                <h3>رقم الهاتف</h3>
-                                <p>+201126130559</p>
-                            </div>
-                        </div>
-                    </div>
+                const videoElement = document.createElement('video');
+                videoElement.src = `/uploads/${video}`;
+                videoElement.controls = true;
+                
+                container.appendChild(videoElement);
+                videoList.appendChild(container);
+            });
+        }
 
-                    <div class="achievements-grid reveal-bottom">
-                        <div class="achievement-card">
-                            <span class="achievement-number" data-target="500">500+</span>
-                            <p>طالب ناجح</p>
-                        </div>
-                        <div class="achievement-card">
-                            <span class="achievement-number" data-target="10">10+</span>
-                            <p>سنوات خبرة</p>
-                        </div>
-                        <div class="achievement-card">
-                            <span class="achievement-number" data-target="100">100%</span>
-                            <p>نسبة رضا الطلاب</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        // معالجة نموذج الرفع
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                loadVideos();
+                e.target.reset();
+            } catch (err) {
+                console.error('Upload failed:', err);
+            }
+        };
 
-    <!--services section Design-->
-    <section class="services-section" id="services">
-        <h2 class="section-title fade-in">خدماتنا</h2>
-        <div class="services-container">
-            <div class="service-card slide-in-left">
-                <div class="service-icon">
-                    <i class="fas fa-language"></i>
-                </div>
-                <h3>تعليم اللغة العربية</h3>
-                <p>دروس شاملة في القواعد والنحو والبلاغة والأدب العربي</p>
-                <a href="#" class="service-btn">
-                    اقرأ المزيد
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div class="service-card slide-in-top">
-                <div class="service-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <h3>تحسين مهارات التفكير</h3>
-                <p>تطوير القدرات العقلية وأساليب التفكير النقدي والإبداعي</p>
-                <a href="#" class="service-btn">
-                    اقرأ المزيد
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div class="service-card slide-in-right">
-                <div class="service-icon">
-                    <i class="fas fa-star"></i>
-                </div>
-                <h3>تطوير الذات</h3>
-                <p>برامج متخصصة لتعزيز الثقة بالنفس وتنمية المهارات الشخصية</p>
-                <a href="#" class="service-btn">
-                    اقرأ المزيد
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div class="service-card slide-in-left">
-                <div class="service-icon">
-                    <i class="fas fa-book-reader"></i>
-                </div>
-                <h3>مهارات القراءة</h3>
-                <p>تحسين مهارات القراءة والفهم والتحليل الأدبي</p>
-                <a href="#" class="service-btn">
-                    اقرأ المزيد
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div class="service-card slide-in-bottom">
-                <div class="service-icon">
-                    <i class="fas fa-pen-fancy"></i>
-                </div>
-                <h3>فن الكتابة</h3>
-                <p>تطوير مهارات الكتابة الإبداعية والتعبير</p>
-                <a href="#" class="service-btn">
-                    اقرأ المزيد
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div class="service-card slide-in-right">
-                <div class="service-icon">
-                    <i class="fas fa-comments"></i>
-                </div>
-                <h3>مهارات التواصل</h3>
-                <p>تحسين مهارات الحوار والخطابة والتواصل الفعال</p>
-                <a href="#" class="service-btn">
-                    اقرأ المزيد
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!--projects section Design-->
-    <section class="projects-section" id="projects">
-        <h2 class="section-title">طلابنا</h2>
-        <div class="testimonials-container">
-            <div id="testimonialsSlider" class="testimonials-slider">
-                <!-- Slider content will be populated by JavaScript -->
-            </div>
-            <div class="slider-controls">
-                <button id="prevBtn" class="nav-btn prev-btn">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button id="nextBtn" class="nav-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-            <div id="sliderPagination" class="slider-pagination">
-                <!-- Pagination dots will be added by JavaScript -->
-            </div>
-        </div>
-    </section>
-
-    <!--contact section Design-->
-    <section class="contact-section" id="contact">
-        <h2 class="section-title">اتصل بنا</h2>
-        <div class="contact-wrapper">
-            <div class="contact-info">
-                <div class="info-card">
-                    <div class="info-icon">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
-                    <div class="info-details">
-                        <h3>العنوان</h3>
-                        <p>حلوان، القاهرة، مصر</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <div class="info-icon">
-                        <i class="fas fa-phone"></i>
-                    </div>
-                    <div class="info-details">
-                        <h3>الهاتف</h3>
-                        <p>+201126130559</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <div class="info-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="info-details">
-                        <h3>البريد الإلكتروني</h3>
-                        <p>mohammed.teacher@example.com</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="contact-form">
-                <form>
-                    <div class="form-group">
-                        <input type="text" id="name" required>
-                        <label for="name">الاسم</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="email" required>
-                        <label for="email">البريد الإلكتروني</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="tel" id="phone" required>
-                        <label for="phone">رقم الهاتف</label>
-                    </div>
-                    <div class="form-group">
-                        <textarea id="message" required></textarea>
-                        <label for="message">الرسالة</label>
-                    </div>
-                    <button type="submit" class="submit-button">
-                        <span>إرسال</span>
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="map-container">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d55251.37709962986!2d31.29824!3d29.8469!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145837f7e8f7a015%3A0x96d132f53dc1bb36!2sHelwan%2C%20Cairo%20Governorate!5e0!3m2!1sen!2seg!4v1234567890" allowfullscreen="" loading="lazy"></iframe>
-        </div>
-    </section>
-
-
-    <script src="js/main.js"></script>
-    <script src="js/script.js"></script>
-    
-    
+        // تحميل الفيديوهات عند بدء التطبيق
+        loadVideos();
+    </script>
 </body>
 </html>
