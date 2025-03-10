@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>رفع الفيديو</title>
+    <title>مشغل الفيديو</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -69,13 +69,38 @@
             width: 100%;
             max-width: 100%;
         }
+        .upload-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .upload-section {
+            margin: 10px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>رفع الفيديو</h1>
-        <input type="text" id="videoUrl" placeholder="ضع رابط اليوتيوب هنا">
-        <button onclick="addVideo()">إضافة فيديو</button>
+        <h1>مشغل الفيديو</h1>
+        
+        <div class="upload-options">
+            <div class="upload-section">
+                <h3>رفع من الجهاز</h3>
+                <input type="file" id="localVideo" accept="video/*">
+                <button onclick="uploadLocalVideo()">رفع الفيديو</button>
+            </div>
+            
+            <div class="upload-section">
+                <h3>رفع من يوتيوب</h3>
+                <input type="text" id="videoUrl" placeholder="ضع رابط اليوتيوب هنا">
+                <button onclick="addYouTubeVideo()">إضافة فيديو</button>
+            </div>
+        </div>
+
         <div class="video-list" id="videoList"></div>
     </div>
 
@@ -90,7 +115,28 @@
     <script>
         const videos = [];
 
-        async function addVideo() {
+        async function uploadLocalVideo() {
+            const fileInput = document.getElementById('localVideo');
+            if (!fileInput.files[0]) return;
+
+            const formData = new FormData();
+            formData.append('video', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                videos.push(data);
+                updateVideoList();
+                fileInput.value = '';
+            } catch (error) {
+                alert('خطأ في رفع الفيديو: ' + error.message);
+            }
+        }
+
+        async function addYouTubeVideo() {
             const url = document.getElementById('videoUrl').value;
             if(url) {
                 try {
@@ -128,6 +174,7 @@
             title.textContent = video.title;
             player.src = video.url;
             modal.style.display = 'block';
+            player.play();
         }
 
         function closeModal() {
