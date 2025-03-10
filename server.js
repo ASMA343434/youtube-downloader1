@@ -6,69 +6,89 @@ const bodyParser = require('body-parser');
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname)));
-app.use('/static', express.static(path.join(__dirname, 'public')));
 
-// Serve index.html for root route
+// Global error variables
+let lastError = null;
+let videos = [];
+
+// Basic error handler
+const handleError = (err, req, res) => {
+    console.error('Error:', err);
+    lastError = err;
+    res.status(500).json({
+        error: 'حدث خطأ في الخادم',
+        details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
+};
+
+// API Routes with error handling
+app.post('/api/upload', async (req, res) => {
+    try {
+        const { youtubeUrl, title, grade, description } = req.body;
+        if (!youtubeUrl || !title || !grade) {
+            return res.status(400).json({ error: 'بيانات غير مكتملة' });
+        }
+
+        const video = {
+            id: Date.now(),
+            youtubeUrl,
+            title,
+            grade,
+            description,
+            timestamp: new Date()
+        };
+        
+        videos.push(video);
+        res.json({ success: true, video });
+    } catch (err) {
+        handleError(err, req, res);
+    }
+});
+
+app.get('/api/videos', async (req, res) => {
+    try {
+        const { grade } = req.query;
+        const filteredVideos = grade ? videos.filter(v => v.grade === grade) : videos;
+        res.json(filteredVideos);
+    } catch (err) {
+        handleError(err, req, res);
+    }
+});
+
+// Serve static files
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// تأكد من أن الملفات الساكنة يمكن الوصول إليها
 app.get('/style.css', (req, res) => {
-    res.sendFile(path.join(__dirname, 'style.css'));
+    res.sendFile(path.join(__dirname, 'style.css'), err => {
+        if (err) handleError(err, req, res);
+    });
 });
 
 app.get('/main.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'main.js'));
-});
-
-// Store videos (in real application, use a database)
-let videos = [];
-
-app.post('/api/upload', (req, res) => {
-    const { youtubeUrl, title, grade, description } = req.body;
-    
-    // Validate YouTube URL
-    if (!youtubeUrl.includes('youtube.com') && !youtubeUrl.includes('youtu.be')) {
-        return res.status(400).json({ error: 'Invalid YouTube URL' });
-    }
-
-    // Add video to collection
-    videos.push({
-        id: Date.now(),
-        youtubeUrl,
-        title,
-        grade,
-        description,
-        timestamp: new Date()
+    res.sendFile(path.join(__dirname, 'main.js'), err => {
+        if (err) handleError(err, req, res);
     });
-
-    res.json({ success: true });
 });
 
-// Verify code endpoint
-app.post('/api/verify-code', (req, res) => {
-    const { code, videoId } = req.body;
-    
-    // Here you should implement your actual code verification logic
-    // This is just a simple example
-    if (code === '123456') {
-        res.json({ success: true });
-    } else {
-        res.status(400).json({ error: 'Invalid code' });
-    }
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        lastError: lastError ? lastError.message : null,
+        videosCount: videos.length
+    });
 });
 
-app.get('/api/videos', (req, res) => {
-    const { grade } = req.query;
-    const filteredVideos = grade ? videos.filter(v => v.grade === grade) : videos;
-    res.json(filteredVideos);
-});
-
-// Error handling middleware
+// Global error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    handleError(err, req, res);
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'الصفحة غير موجودة' });
 });
 
 const PORT = process.env.PORT || 3000;
