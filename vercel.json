@@ -12,11 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "index.js"
-    },
-    {
-      "src": "/download",
+      "src": "/video-info",
       "dest": "index.js"
     },
     {

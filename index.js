@@ -8,19 +8,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Add root route handler
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/download', async (req, res) => {
+app.get('/video-info', async (req, res) => {
     try {
         const url = req.query.url;
         const info = await ytdl.getInfo(url);
         const format = ytdl.chooseFormat(info.formats, { quality: 'highest' });
-        
-        res.header('Content-Disposition', `attachment; filename="${info.videoDetails.title}.mp4"`);
-        ytdl(url, { format: format }).pipe(res);
+        res.json({
+            title: info.videoDetails.title,
+            url: format.url,
+            thumbnail: info.videoDetails.thumbnails[0].url
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

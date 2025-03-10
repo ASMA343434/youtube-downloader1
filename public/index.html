@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>YouTube Downloader</title>
+    <title>YouTube Video Player</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,19 +24,40 @@
             border: none;
             cursor: pointer;
         }
+        #videoPlayer {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        #videoTitle {
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>YouTube Video Downloader</h1>
+        <h1>YouTube Video Player</h1>
         <input type="text" id="videoUrl" placeholder="Enter YouTube URL">
-        <button onclick="downloadVideo()">Download</button>
+        <button onclick="loadVideo()">Play Video</button>
+        <div id="videoTitle"></div>
+        <video id="videoPlayer" controls></video>
     </div>
     <script>
-        function downloadVideo() {
+        async function loadVideo() {
             const url = document.getElementById('videoUrl').value;
             if(url) {
-                window.location.href = `/download?url=${encodeURIComponent(url)}`;
+                try {
+                    const response = await fetch(`/video-info?url=${encodeURIComponent(url)}`);
+                    const data = await response.json();
+                    
+                    document.getElementById('videoTitle').textContent = data.title;
+                    const videoPlayer = document.getElementById('videoPlayer');
+                    videoPlayer.src = data.url;
+                    videoPlayer.play();
+                } catch (error) {
+                    alert('Error loading video: ' + error.message);
+                }
             }
         }
     </script>
