@@ -12,20 +12,19 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "index.js"
+    },
+    {
       "src": "/",
-      "dest": "index.js"
+      "dest": "public/index.html"
     },
     {
-      "src": "/up.html",
-      "dest": "index.js"
+      "src": "/up",
+      "dest": "public/up.html"
     },
     {
-      "src": "/video-info",
-      "dest": "index.js"
-    },
-    {
-      "src": "/upload",
-      "dest": "index.js"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
@@ -33,6 +32,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "PUBLIC_DIR": "/public",
+    "UPLOADS_DIR": "/public/uploads"
   }
 }

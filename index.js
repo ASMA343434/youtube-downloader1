@@ -1,22 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const ytdl = require('ytdl-core');
-const app = express();
-const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
+const config = require('./src/config');
+
+const app = express(); // Add this line to initialize Express app
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(config.uploadsDir)) {
+    fs.mkdirSync(config.uploadsDir, { recursive: true });
 }
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
-    destination: uploadsDir,
+    destination: config.uploadsDir,
     filename: (req, file, cb) => {
-        // Add timestamp to prevent filename conflicts
         const uniqueName = `${Date.now()}-${file.originalname}`;
         cb(null, uniqueName);
     }
@@ -24,24 +24,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: {
-        fileSize: 100 * 1024 * 1024 // 100MB limit
-    }
+    limits: config.uploadLimits
 }).single('video');
 
-app.use(cors());
+// Middleware
+app.use(cors(config.cors));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use(express.static(config.publicDir));
+app.use('/uploads', express.static(config.uploadsDir));
 
-// Serve index.html at root
+// Routes
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(config.publicDir, 'index.html'));
 });
 
-// Serve up.html
 app.get('/up.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'up.html'));
+    res.sendFile(path.join(config.publicDir, 'up.html'));
 });
 
 app.get('/video-info', async (req, res) => {
@@ -85,7 +83,7 @@ app.post('/upload', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
