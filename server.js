@@ -3,95 +3,91 @@ const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
 
+// Enable CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
+
 // Middleware
+app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname)));
 
-// Global error variables
-let lastError = null;
+// In-memory storage
 let videos = [];
 
-// Basic error handler
-const handleError = (err, req, res) => {
-    console.error('Error:', err);
-    lastError = err;
-    res.status(500).json({
-        error: 'حدث خطأ في الخادم',
-        details: process.env.NODE_ENV === 'development' ? err.message : null
-    });
-};
-
-// API Routes with error handling
-app.post('/api/upload', async (req, res) => {
+// API Routes
+app.post('/api/upload', (req, res) => {
     try {
-        const { youtubeUrl, title, grade, description } = req.body;
-        if (!youtubeUrl || !title || !grade) {
-            return res.status(400).json({ error: 'بيانات غير مكتملة' });
-        }
-
         const video = {
-            id: Date.now(),
-            youtubeUrl,
-            title,
-            grade,
-            description,
+            id: Date.now().toString(),
+            ...req.body,
             timestamp: new Date()
         };
-        
         videos.push(video);
         res.json({ success: true, video });
     } catch (err) {
-        handleError(err, req, res);
+        res.status(500).json({ 
+            error: 'خطأ في رفع الفيديو',
+            message: err.message 
+        });
     }
 });
 
-app.get('/api/videos', async (req, res) => {
+app.get('/api/videos', (req, res) => {
     try {
         const { grade } = req.query;
         const filteredVideos = grade ? videos.filter(v => v.grade === grade) : videos;
         res.json(filteredVideos);
     } catch (err) {
-        handleError(err, req, res);
+        res.status(500).json({ 
+            error: 'خطأ في تحميل الفيديوهات',
+            message: err.message 
+        });
     }
 });
 
-// Serve static files
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/style.css', (req, res) => {
-    res.sendFile(path.join(__dirname, 'style.css'), err => {
-        if (err) handleError(err, req, res);
-    });
-});
-
-app.get('/main.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'main.js'), err => {
-        if (err) handleError(err, req, res);
-    });
+// Verify code endpoint with proper error handling
+app.post('/api/verify-code', (req, res) => {
+    try {
+        const { code } = req.body;
+        if (code === '123456') {
+            res.json({ success: true });
+        } else {
+            res.status(400).json({ error: 'الكود غير صحيح' });
+        }
+    } catch (err) {
+        res.status(500).json({ 
+            error: 'خطأ في التحقق من الكود',
+            message: err.message 
+        });
+    }
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({
+    res.json({ 
         status: 'ok',
-        lastError: lastError ? lastError.message : null,
         videosCount: videos.length
     });
 });
 
-// Global error handling middleware
-app.use((err, req, res, next) => {
-    handleError(err, req, res);
+// Serve static files with error handling
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ error: 'الصفحة غير موجودة' });
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).json({
+        error: 'حدث خطأ في الخادم',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'خطأ داخلي'
+    });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
