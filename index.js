@@ -16,7 +16,11 @@ app.get('/video-info', async (req, res) => {
     try {
         const url = req.query.url;
         const info = await ytdl.getInfo(url);
-        const format = ytdl.chooseFormat(info.formats, { quality: 'highest' });
+        const format = ytdl.chooseFormat(info.formats, { 
+            quality: 'highest',
+            filter: 'videoandaudio'
+        });
+        
         res.json({
             title: info.videoDetails.title,
             url: format.url,
