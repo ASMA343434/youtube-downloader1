@@ -12,6 +12,16 @@
   ],
   "routes": [
     {
+      "src": "/api/upload",
+      "methods": ["POST"],
+      "dest": "index.js"
+    },
+    {
+      "src": "/api/video-info",
+      "methods": ["GET"],
+      "dest": "index.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "index.js"
     },

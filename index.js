@@ -61,6 +61,24 @@ app.get('/video-info', async (req, res) => {
     }
 });
 
+app.get('/api/video-info', async (req, res) => {
+    try {
+        const url = req.query.url;
+        const info = await ytdl.getInfo(url);
+        const formats = info.formats.filter(format => format.hasVideo && format.hasAudio);
+        const format = formats[0];
+        
+        res.json({
+            title: info.videoDetails.title,
+            url: format.url,
+            thumbnail: info.videoDetails.thumbnails[0].url,
+            type: 'external'
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.post('/upload', (req, res) => {
     upload(req, res, function(err) {
         if (err) {
@@ -75,6 +93,22 @@ app.post('/upload', (req, res) => {
             });
         }
 
+        res.json({
+            title: req.file.originalname,
+            url: `/uploads/${req.file.filename}`,
+            type: 'local'
+        });
+    });
+});
+
+app.post('/api/upload', (req, res) => {
+    upload(req, res, function(err) {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
         res.json({
             title: req.file.originalname,
             url: `/uploads/${req.file.filename}`,

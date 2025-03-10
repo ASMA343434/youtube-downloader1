@@ -123,38 +123,52 @@
             formData.append('video', fileInput.files[0]);
 
             try {
-                const response = await fetch('/upload', {
+                const response = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
                 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'حدث خطأ أثناء رفع الفيديو');
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Invalid response from server');
                 }
 
                 const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
                 videos.push(data);
                 updateVideoList();
                 fileInput.value = '';
             } catch (error) {
+                console.error('Upload error:', error);
                 alert('خطأ في رفع الفيديو: ' + error.message);
             }
         }
 
         async function addYouTubeVideo() {
             const url = document.getElementById('videoUrl').value;
-            if(url) {
-                try {
-                    const response = await fetch(`/video-info?url=${encodeURIComponent(url)}`);
-                    const data = await response.json();
-                    
-                    videos.push(data);
-                    updateVideoList();
-                    document.getElementById('videoUrl').value = '';
-                } catch (error) {
-                    alert('خطأ في تحميل الفيديو: ' + error.message);
+            if(!url) return;
+
+            try {
+                const response = await fetch(`/api/video-info?url=${encodeURIComponent(url)}`);
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Invalid response from server');
                 }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                videos.push(data);
+                updateVideoList();
+                document.getElementById('videoUrl').value = '';
+            } catch (error) {
+                console.error('Video info error:', error);
+                alert('خطأ في تحميل الفيديو: ' + error.message);
             }
         }
 
