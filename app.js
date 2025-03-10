@@ -4,24 +4,42 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-// تغيير المنفذ ليتناسب مع Vercel
 const port = process.env.PORT || 3000;
 
-// تعديل مسار التخزين ليكون في tmp للتوافق مع Vercel
+// إضافة middleware للتعامل مع الأخطاء
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+// تكوين multer مع معالجة الأخطاء
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const dir = '/tmp/uploads'
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true })
+        const dir = '/tmp/uploads';
+        try {
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+            cb(null, dir);
+        } catch (error) {
+            cb(error, null);
         }
-        cb(null, dir)
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname))
+        try {
+            cb(null, Date.now() + path.extname(file.originalname));
+        } catch (error) {
+            cb(error, null);
+        }
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // حد 10 ميجابايت
+    }
+}).single('video');
 
 // تكوين المسارات الثابتة
 app.use(express.static('public'));
@@ -32,26 +50,47 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// تعديل مسار القراءة للملفات
+// تحسين معالجة قراءة الفيديوهات
 app.get('/videos', (req, res) => {
-    const dir = '/tmp/uploads'
-    if (!fs.existsSync(dir)) {
-        return res.json([]);
-    }
-    fs.readdir(dir, (err, files) => {
-        if (err) {
-            return res.status(500).json({ error: err });
+    const dir = '/tmp/uploads';
+    try {
+        if (!fs.existsSync(dir)) {
+            return res.json([]);
         }
-        res.json(files.filter(file => ['.mp4', '.avi', '.mkv'].includes(path.extname(file))));
-    });
+        fs.readdir(dir, (err, files) => {
+            if (err) {
+                console.error('Error reading directory:', err);
+                return res.status(500).json({ error: 'Failed to read videos directory' });
+            }
+            const videos = files.filter(file => 
+                ['.mp4', '.avi', '.mkv'].includes(path.extname(file))
+            );
+            res.json(videos);
+        });
+    } catch (error) {
+        console.error('Error accessing directory:', error);
+        res.status(500).json({ error: 'Server error while accessing videos' });
+    }
 });
 
-// رفع الفيديو
-app.post('/upload', upload.single('video'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded.');
-    }
-    res.json({ filename: req.file.filename });
+// تحسين معالجة تحميل الملفات
+app.post('/upload', (req, res) => {
+    upload(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ error: 'File upload error: ' + err.message });
+        } else if (err) {
+            return res.status(500).json({ error: 'Server error: ' + err.message });
+        }
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        res.json({ 
+            success: true,
+            filename: req.file.filename 
+        });
+    });
 });
 
 // إنشاء مجلد التحميلات إذا لم يكن موجوداً
