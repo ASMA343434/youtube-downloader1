@@ -45,8 +45,8 @@
     "NODE_ENV": "production",
     "PUBLIC_DIR": "/public",
     "UPLOADS_DIR": "/public/uploads",
-    "CLOUDINARY_CLOUD_NAME": "@cloudinary_cloud_name",
-    "CLOUDINARY_API_KEY": "@cloudinary_api_key",
-    "CLOUDINARY_API_SECRET": "@cloudinary_api_secret"
+    "CLOUDINARY_CLOUD_NAME": "de6swm7bg",
+    "CLOUDINARY_API_KEY": "514845977585693",
+    "CLOUDINARY_API_SECRET": "your_api_secret_here"
   }
 }
